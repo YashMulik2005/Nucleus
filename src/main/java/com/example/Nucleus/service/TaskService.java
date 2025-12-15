@@ -8,6 +8,7 @@ import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskResponseWithUser
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskResponseWithoutUser;
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskShortResponseWithUserDto;
 import com.example.Nucleus.dto.responseDTO.AuthResponseDtos.UserShortResponseDto;
+import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskSingleDetailedResponseDto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public interface TaskService {
     List<UserShortResponseDto> assignUser(Long taskId, Long userId);
     List<UserShortResponseDto> removeUser(Long taskId, Long userId);
     TaskResponseWithUserDto updateTask(Long id, TaskRequestDto taskRequestDto);
-    TaskResponseWithUserDto getTaskById(Long id);
+    TaskSingleDetailedResponseDto getTaskById(Long id);
     List<TaskShortResponseWithUserDto> getTaskByProject(Long id);
     void deleteTask(Long id);
 }

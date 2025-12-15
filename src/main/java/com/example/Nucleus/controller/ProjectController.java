@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +33,12 @@ public class ProjectController {
     public ResponseEntity<Object> joinProject(@Valid @RequestBody JoinProjectDto joinProjectDto){
         return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK,true,
                 "Join project successfully.",projectServiceImpl.joinProject(joinProjectDto.getCode()));
+    }
+
+    @PatchMapping("{projectId}/removeUser/{userId}")
+    public ResponseEntity<Object> removeUser(@PathVariable Long projectId, @PathVariable Long userId){
+        return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK,true,
+                "User Removed from project successfully.",null);
     }
 
     @GetMapping("/users/{id}")

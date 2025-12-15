@@ -8,7 +8,9 @@ import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskResponseWithUser
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskResponseWithoutUser;
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskShortResponseWithUserDto;
 import com.example.Nucleus.dto.responseDTO.AuthResponseDtos.UserShortResponseDto;
+import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskSingleDetailedResponseDto;
 import com.example.Nucleus.exception.NotFoundException;
+import com.example.Nucleus.model.Activity;
 import com.example.Nucleus.model.Project;
 import com.example.Nucleus.model.Task;
 import com.example.Nucleus.model.User;
@@ -18,6 +20,7 @@ import com.example.Nucleus.repository.ProjectRepository;
 import com.example.Nucleus.repository.TaskRepository;
 import com.example.Nucleus.repository.UserRepository;
 import com.example.Nucleus.service.TaskService;
+import com.example.Nucleus.utils.GetAuthenticatedUser;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +46,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ActivityServiceImpl activityServiceImpl;
+
+    @Autowired
+    private GetAuthenticatedUser getAuthenticatedUser;
 
     @Override
     public List<String> getValidStatus() {
@@ -82,39 +92,73 @@ public class TaskServiceImpl implements TaskService {
             task.getAssignTo().addAll(assigness);
         }
         Task savedTask = taskRepository.save(task);
+        Activity activity = new Activity();
+        activity.setMessage("task added.");
+        activity.setTask(savedTask);
+        activity.setUser(user);
+        activityServiceImpl.addActivity(activity);
         return modelMapper.map(savedTask, TaskResponseWithUserDto.class);
     }
 
     @Override
+    @Transactional
     public TaskResponseWithoutUser updateStatus(Long id, UpdateTaskStatusRequestDto updateTaskStatusRequestDto) {
+        User user = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
-
+        TaskStatusType temp = task.getStatus();
         task.setStatus(updateTaskStatusRequestDto.getStatus());
         Task updatedTask = taskRepository.save(task);
+
+        Task savedTask = taskRepository.save(task);
+
+        Activity activity = new Activity();
+        activity.setMessage("task status updated from "+ temp +" to " + savedTask.getStatus());
+        activity.setTask(savedTask);
+        activity.setUser(user);
+        activityServiceImpl.addActivity(activity);
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
 
     @Override
+    @Transactional
     public TaskResponseWithoutUser updatePriority(Long id, UpdateTaskPriorityRequestDto updateTaskPriorityRequestDto) {
+        User user = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
-
+        PriorityType temp = task.getPriority();
         task.setPriority(updateTaskPriorityRequestDto.getPriority());
         Task updatedTask = taskRepository.save(task);
+
+        Activity activity = new Activity();
+        activity.setMessage("task priority updated from "+ temp +" to " + updatedTask.getPriority());
+        activity.setTask(updatedTask);
+        activity.setUser(user);
+        activityServiceImpl.addActivity(activity);
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
 
     @Override
     public TaskResponseWithoutUser updateDates(Long id, UpdateTaskDatesRequestDto updateTaskDatesRequestDto) {
+        User user = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
+
+        LocalDateTime tempStartDate = task.getStartDate();
+        LocalDateTime tempEndDate = task.getEndDate();
 
         task.setStartDate(updateTaskDatesRequestDto.getStartDate());
         task.setEndDate(updateTaskDatesRequestDto.getEndDate());
         Task updatedTask = taskRepository.save(task);
+
+        Activity activity = new Activity();
+        activity.setMessage("task dates updated from start date: "+ tempStartDate +" and end date:  " + tempEndDate
+                + " to start date: " + updatedTask.getStartDate() + "and end date: " + updatedTask.getEndDate());
+        activity.setTask(updatedTask);
+        activity.setUser(user);
+        activityServiceImpl.addActivity(activity);
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
@@ -122,17 +166,26 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public List<UserShortResponseDto> assignUser(Long taskId, Long userId) {
+        User loggedUser = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new NotFoundException("User not found."));
 
+        // check for user joined project - pending
         if(task.getAssignTo().contains(user)){
             throw new RuntimeException("User already assigned to this task.");
         }
 
         task.getAssignTo().add(user);
         Task updatedTask = taskRepository.save(task);
+
+        Activity activity = new Activity();
+        activity.setMessage(user.getDisplayName()+" assigned to task.");
+        activity.setTask(updatedTask);
+        activity.setUser(loggedUser);
+        activityServiceImpl.addActivity(activity);
+
         return updatedTask.getAssignTo().stream()
                 .map(assignUser -> modelMapper.map(assignUser, UserShortResponseDto.class))
                 .toList();
@@ -141,6 +194,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public List<UserShortResponseDto> removeUser(Long taskId, Long userId) {
+        User loggedUser = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
         User user = userRepository.findById(userId)
@@ -152,6 +206,13 @@ public class TaskServiceImpl implements TaskService {
 
         task.getAssignTo().remove(user);
         Task updatedTask = taskRepository.save(task);
+
+        Activity activity = new Activity();
+        activity.setMessage(user.getDisplayName()+" removed from task.");
+        activity.setTask(updatedTask);
+        activity.setUser(loggedUser);
+        activityServiceImpl.addActivity(activity);
+
         return updatedTask.getAssignTo().stream()
                 .map(assignUser -> modelMapper.map(assignUser, UserShortResponseDto.class))
                 .toList();
@@ -159,6 +220,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseWithUserDto updateTask(Long id, TaskRequestDto taskRequestDto) {
+        User loggedUser = getAuthenticatedUser.getAuthenticatedUserDetails();
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Task not found."));
 
@@ -172,15 +234,21 @@ public class TaskServiceImpl implements TaskService {
 
         Task updatedTask = taskRepository.save(task);
 
+        Activity activity = new Activity();
+        activity.setMessage("Task updated by "+loggedUser.getDisplayName());
+        activity.setTask(updatedTask);
+        activity.setUser(loggedUser);
+        activityServiceImpl.addActivity(activity);
+
         return modelMapper.map(updatedTask, TaskResponseWithUserDto.class);
     }
 
     @Override
-    public TaskResponseWithUserDto getTaskById(Long id) {
+    public TaskSingleDetailedResponseDto getTaskById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
 
-        return modelMapper.map(task, TaskResponseWithUserDto.class);
+        return modelMapper.map(task, TaskSingleDetailedResponseDto.class);
     }
 
     @Override

@@ -11,17 +11,20 @@ import com.example.Nucleus.model.User;
 import com.example.Nucleus.model.Workspace;
 import com.example.Nucleus.repository.ProjectJoinCodeRepository;
 import com.example.Nucleus.repository.ProjectRepository;
+import com.example.Nucleus.repository.UserRepository;
 import com.example.Nucleus.repository.WorkspaceRepository;
 import com.example.Nucleus.service.ProjectService;
 import com.example.Nucleus.utils.RandomCodeGenerator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
@@ -39,6 +42,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Autowired
     private RandomCodeGenerator randomCodeGenerator;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public ProjectResponseDto addProject(ProjectRequestDto projectRequestDto) {
@@ -127,5 +133,33 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.deleteById(id);
     }
 
+    @Override
+    public List<UserShortResponseDto> removeUserFromProject(Long projectId, Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication == null || !authentication.isAuthenticated()){
+            throw new RuntimeException("UnAuthenticated.");
+        }
+        User logedUser = (User) authentication.getPrincipal();
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(()-> new NotFoundException("Project not found."));
+
+//        if(!Objects.equals(project.getWorkspace().getUser().getId(), logedUser.getId())){
+//            throw new AccessDeniedException("Don't have access to to this.");
+//        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new NotFoundException("User not found."));
+
+        if(!project.getUsers().contains(user)){
+            throw new RuntimeException("User is not joined to this project.");
+        }
+
+        project.getUsers().remove(user);
+        Project updatedProject = projectRepository.save(project);
+
+        return updatedProject.getUsers().stream()
+                .map(projectUser -> modelMapper.map(projectUser, UserShortResponseDto.class))
+                .toList();
+    }
 
 }

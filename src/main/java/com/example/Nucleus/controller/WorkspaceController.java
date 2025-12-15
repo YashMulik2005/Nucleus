@@ -39,4 +39,11 @@ public class WorkspaceController {
         return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK, true,
                 "Workspace updated successfully.", workspaceServiceImpl.updateWorkspace(id, workspaceRequestDto));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteWorkspace(@PathVariable Long id){
+        workspaceServiceImpl.DeleteWorkspace(id);
+        return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK, true,
+                "Workspace deleted successfully.", null);
+    }
 }

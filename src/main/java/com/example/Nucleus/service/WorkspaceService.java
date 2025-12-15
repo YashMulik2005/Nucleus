@@ -11,4 +11,5 @@ public interface WorkspaceService {
     List<WorkspaceResponseDto> getWorkspaceByUser(Long id);
     SingleWorkspaceWithProjectsResponseDto getWorkspaceById(Long id);
     WorkspaceResponseDto updateWorkspace(Long id, WorkspaceRequestDto workspaceRequestDto);
+    void DeleteWorkspace(Long id);
 }

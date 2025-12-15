@@ -73,4 +73,12 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Workspace updatedWorkspace = workspaceRepository.save(workspace);
         return modelMapper.map(updatedWorkspace , WorkspaceResponseDto.class);
     }
+
+    @Override
+    public void DeleteWorkspace(Long id) {
+        Workspace workspace = workspaceRepository.findById(id)
+                .orElseThrow(()-> new NotFoundException("Workspace not found."));
+
+        workspaceRepository.deleteById(id);
+    }
 }
