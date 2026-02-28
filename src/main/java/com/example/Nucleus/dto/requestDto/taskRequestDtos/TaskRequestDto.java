@@ -104,4 +104,19 @@ public class TaskRequestDto {
     public void setProject_id(Long project_id) {
         this.project_id = project_id;
     }
+
+    @Override
+    public String toString() {
+        return "TaskRequestDto{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                ", priority=" + priority +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", img='" + img + '\'' +
+                ", project_id=" + project_id +
+                ", assignTo=" + assignTo +
+                '}';
+    }
 }

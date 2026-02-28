@@ -6,10 +6,14 @@ import com.example.Nucleus.dto.requestDto.taskRequestDtos.UpdateTaskDatesRequest
 import com.example.Nucleus.dto.requestDto.taskRequestDtos.UpdateTaskPriorityRequestDto;
 import com.example.Nucleus.dto.requestDto.taskRequestDtos.UpdateTaskStatusRequestDto;
 import com.example.Nucleus.service.impl.TaskServiceImpl;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/task")
@@ -17,6 +21,9 @@ public class TaskController {
 
     @Autowired
     private TaskServiceImpl taskServiceImpl;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @GetMapping("/status")
     public ResponseEntity<Object> getValidStatus(){
@@ -30,10 +37,17 @@ public class TaskController {
                 "Fetched valid status successfully.", taskServiceImpl.getValidPriority());
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<Object> addTask(@RequestBody TaskRequestDto taskRequestDto){
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> addTask(
+            @RequestPart(value = "img", required = false) MultipartFile image,
+            @RequestPart(value = "task") String taskData){
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TaskRequestDto taskRequestDto = objectMapper.readValue(taskData, TaskRequestDto.class);
+
+        System.out.println("going to service.");
         return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK, true,
-                "Task added successfully.", taskServiceImpl.addTask(taskRequestDto));
+                "Task added successfully.", taskServiceImpl.addTask(taskRequestDto, image));
     }
 
     @GetMapping("/get/{taskId}")

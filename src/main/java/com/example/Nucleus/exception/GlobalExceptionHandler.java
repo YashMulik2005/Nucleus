@@ -10,6 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
+import java.io.IOException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -59,8 +62,18 @@ public class GlobalExceptionHandler {
         return ErrorResponseHandler.ErrorResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR,false,ex.getMessage());
     }
 
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<?> handleGenericException(IOException ex) {
+        return ErrorResponseHandler.ErrorResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR,false,ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(Exception ex){
         return ErrorResponseHandler.ErrorResponseBuilder(HttpStatus.BAD_REQUEST,false, ex.getMessage());
+    }
+
+    @ExceptionHandler(S3UploadException.class)
+    public ResponseEntity<?> handleS3UploadException(S3Exception ex){
+        return ErrorResponseHandler.ErrorResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR,false, ex.getMessage());
     }
 }

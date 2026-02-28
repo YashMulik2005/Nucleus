@@ -10,6 +10,7 @@ import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskShortResponseWit
 import com.example.Nucleus.dto.responseDTO.AuthResponseDtos.UserShortResponseDto;
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskSingleDetailedResponseDto;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ import java.util.List;
 public interface TaskService {
     List<String> getValidStatus();
     List<String> getValidPriority();
-    TaskResponseWithUserDto addTask(TaskRequestDto taskRequestDto);
+    TaskResponseWithUserDto addTask(TaskRequestDto taskRequestDto, MultipartFile img);
     TaskResponseWithoutUser updateStatus(Long id, UpdateTaskStatusRequestDto updateTaskStatusRequestDto);
     TaskResponseWithoutUser updatePriority(Long id, UpdateTaskPriorityRequestDto updateTaskPriorityRequestDto);
     TaskResponseWithoutUser updateDates(Long id, UpdateTaskDatesRequestDto updateTaskDatesRequestDto);

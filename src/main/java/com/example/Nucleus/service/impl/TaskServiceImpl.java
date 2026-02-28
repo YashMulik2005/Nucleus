@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -53,6 +54,9 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private GetAuthenticatedUser getAuthenticatedUser;
 
+    @Autowired
+    private S3ServiceImpl s3ServiceImpl;
+
     @Override
     public List<String> getValidStatus() {
         return Arrays.stream(TaskStatusType.values())
@@ -69,9 +73,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public TaskResponseWithUserDto addTask(TaskRequestDto taskRequestDto) {
+    public TaskResponseWithUserDto addTask(TaskRequestDto taskRequestDto, MultipartFile img) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        System.out.println(taskRequestDto.toString());
         if(authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymeousUser")){
             throw new RuntimeException("Unauthenticated.");
         }
@@ -83,6 +87,13 @@ public class TaskServiceImpl implements TaskService {
         task.setCreatedBy(user);
         task.setProject(project);
 
+        if(img != null && !img.isEmpty()){
+            String key = s3ServiceImpl.uploadImg(img, "task");
+            task.setImg(key);
+            System.out.println("key is ready and imahe added.");
+        }
+
+
         if(taskRequestDto.getAssignTo() != null && !taskRequestDto.getAssignTo().isEmpty()){
             List<User> assigness = taskRequestDto.getAssignTo().stream()
                     .map(userId -> userRepository.findById(userId)
@@ -91,6 +102,8 @@ public class TaskServiceImpl implements TaskService {
 
             task.getAssignTo().addAll(assigness);
         }
+
+        System.out.println("ready to add task.");
         Task savedTask = taskRepository.save(task);
         Activity activity = new Activity();
         activity.setMessage("task added.");
