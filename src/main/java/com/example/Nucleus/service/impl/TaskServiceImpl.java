@@ -261,7 +261,9 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Task not found."));
 
-        return modelMapper.map(task, TaskSingleDetailedResponseDto.class);
+        TaskSingleDetailedResponseDto res= modelMapper.map(task, TaskSingleDetailedResponseDto.class);
+        res.setImg(s3ServiceImpl.getImgUrl(res.getImg()));
+        return res;
     }
 
     @Override
