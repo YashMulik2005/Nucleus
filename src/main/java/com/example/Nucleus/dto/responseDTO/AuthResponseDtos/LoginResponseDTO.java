@@ -4,14 +4,16 @@ import java.time.LocalDateTime;
 
 public class LoginResponseDTO {
     private Long id;
+    private String displayName;
     private String accessToken;
     private String refreshToken;
 
     public LoginResponseDTO() {
     }
 
-    public LoginResponseDTO(Long id, String accessToken, String refreshToken) {
+    public LoginResponseDTO(Long id, String displayName, String accessToken, String refreshToken) {
         this.id = id;
+        this.displayName = displayName;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
@@ -38,5 +40,13 @@ public class LoginResponseDTO {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }

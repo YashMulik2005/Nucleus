@@ -9,6 +9,7 @@ import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskResponseWithoutU
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskShortResponseWithUserDto;
 import com.example.Nucleus.dto.responseDTO.AuthResponseDtos.UserShortResponseDto;
 import com.example.Nucleus.dto.responseDTO.taskResponseDtos.TaskSingleDetailedResponseDto;
+import com.example.Nucleus.event.TaskActivityEvent;
 import com.example.Nucleus.exception.NotFoundException;
 import com.example.Nucleus.model.Activity;
 import com.example.Nucleus.model.Project;
@@ -24,11 +25,13 @@ import com.example.Nucleus.utils.GetAuthenticatedUser;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.URIParameter;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +59,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private S3ServiceImpl s3ServiceImpl;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<String> getValidStatus() {
@@ -105,11 +111,8 @@ public class TaskServiceImpl implements TaskService {
 
         System.out.println("ready to add task.");
         Task savedTask = taskRepository.save(task);
-        Activity activity = new Activity();
-        activity.setMessage("task added.");
-        activity.setTask(savedTask);
-        activity.setUser(user);
-        activityServiceImpl.addActivity(activity);
+
+        eventPublisher.publishEvent(new TaskActivityEvent("Task added.", user, savedTask));
         return modelMapper.map(savedTask, TaskResponseWithUserDto.class);
     }
 
@@ -125,11 +128,7 @@ public class TaskServiceImpl implements TaskService {
 
         Task savedTask = taskRepository.save(task);
 
-        Activity activity = new Activity();
-        activity.setMessage("task status updated from "+ temp +" to " + savedTask.getStatus());
-        activity.setTask(savedTask);
-        activity.setUser(user);
-        activityServiceImpl.addActivity(activity);
+        eventPublisher.publishEvent(new TaskActivityEvent("Task status updated from "+ temp +" to " + savedTask.getStatus()+".", user, savedTask));
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
@@ -144,11 +143,7 @@ public class TaskServiceImpl implements TaskService {
         task.setPriority(updateTaskPriorityRequestDto.getPriority());
         Task updatedTask = taskRepository.save(task);
 
-        Activity activity = new Activity();
-        activity.setMessage("task priority updated from "+ temp +" to " + updatedTask.getPriority());
-        activity.setTask(updatedTask);
-        activity.setUser(user);
-        activityServiceImpl.addActivity(activity);
+        eventPublisher.publishEvent(new TaskActivityEvent("Task priority updated from "+ temp +" to " + updatedTask.getPriority(), user, updatedTask));
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
@@ -166,12 +161,8 @@ public class TaskServiceImpl implements TaskService {
         task.setEndDate(updateTaskDatesRequestDto.getEndDate());
         Task updatedTask = taskRepository.save(task);
 
-        Activity activity = new Activity();
-        activity.setMessage("task dates updated from start date: "+ tempStartDate +" and end date:  " + tempEndDate
-                + " to start date: " + updatedTask.getStartDate() + "and end date: " + updatedTask.getEndDate());
-        activity.setTask(updatedTask);
-        activity.setUser(user);
-        activityServiceImpl.addActivity(activity);
+        eventPublisher.publishEvent(new TaskActivityEvent("task dates updated from start date: "+ tempStartDate +" and end date:  " + tempEndDate
+                + " to start date: " + updatedTask.getStartDate() + "and end date: " + updatedTask.getEndDate(),user, updatedTask));
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
@@ -193,11 +184,7 @@ public class TaskServiceImpl implements TaskService {
         task.getAssignTo().add(user);
         Task updatedTask = taskRepository.save(task);
 
-        Activity activity = new Activity();
-        activity.setMessage(user.getDisplayName()+" assigned to task.");
-        activity.setTask(updatedTask);
-        activity.setUser(loggedUser);
-        activityServiceImpl.addActivity(activity);
+        eventPublisher.publishEvent(new TaskActivityEvent(user.getDisplayName()+" assigned to task.", user, updatedTask));
 
         return updatedTask.getAssignTo().stream()
                 .map(assignUser -> modelMapper.map(assignUser, UserShortResponseDto.class))
@@ -220,11 +207,7 @@ public class TaskServiceImpl implements TaskService {
         task.getAssignTo().remove(user);
         Task updatedTask = taskRepository.save(task);
 
-        Activity activity = new Activity();
-        activity.setMessage(user.getDisplayName()+" removed from task.");
-        activity.setTask(updatedTask);
-        activity.setUser(loggedUser);
-        activityServiceImpl.addActivity(activity);
+        eventPublisher.publishEvent(new TaskActivityEvent(user.getDisplayName()+" removed from task.", user, updatedTask));
 
         return updatedTask.getAssignTo().stream()
                 .map(assignUser -> modelMapper.map(assignUser, UserShortResponseDto.class))

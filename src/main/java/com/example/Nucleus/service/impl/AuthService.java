@@ -4,6 +4,7 @@ import com.example.Nucleus.dto.requestDto.authRequestDtos.LoginRequestDto;
 import com.example.Nucleus.dto.requestDto.authRequestDtos.SignUpRequestDto;
 import com.example.Nucleus.dto.responseDTO.LoginResponseDTO;
 import com.example.Nucleus.dto.responseDTO.AuthResponseDtos.SignupResponseDto;
+import com.example.Nucleus.event.UserSignupActivityEvent;
 import com.example.Nucleus.exception.NotFoundException;
 import com.example.Nucleus.exception.ParameterMissingException;
 import com.example.Nucleus.exception.UserAlreadyExist;
@@ -16,6 +17,7 @@ import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,6 +47,9 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     public SignupResponseDto signUp(SignUpRequestDto signUpRequestDto){
         User user = userRepository.findByEmail(signUpRequestDto.getEmail())
                 .orElse(null);
@@ -53,6 +58,8 @@ public class AuthService {
         User requestData =  modelMapper.map(signUpRequestDto, User.class);
         requestData.setPassword(passwordEncoder.encode(signUpRequestDto.getPassword()));
         User savedUser = userRepository.save(requestData);
+
+        eventPublisher.publishEvent(new UserSignupActivityEvent(savedUser));
 
         return modelMapper.map(savedUser, SignupResponseDto.class);
     }
@@ -79,7 +86,7 @@ public class AuthService {
         RefreshToken requestRefreshToken = new RefreshToken(refreshToken, false, user, expiresAt);
         refreshTokenRepository.save(requestRefreshToken);
 
-        return new LoginResponseDTO(user.getId(), accessToken, refreshToken);
+        return new LoginResponseDTO(user.getId(), user.getDisplayName() ,accessToken, refreshToken);
     }
 
     @Transactional
@@ -106,6 +113,6 @@ public class AuthService {
 
         RefreshToken newTokenToStore = new RefreshToken(newRefreshToken, false,user,expiresAt);
         refreshTokenRepository.save(newTokenToStore);
-        return new LoginResponseDTO(user.getId(), newAccessToken, newRefreshToken);
+        return new LoginResponseDTO(user.getId(), user.getDisplayName(), newAccessToken, newRefreshToken);
     }
 }
