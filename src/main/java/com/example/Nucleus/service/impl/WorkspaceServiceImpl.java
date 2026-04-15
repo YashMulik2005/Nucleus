@@ -11,6 +11,8 @@ import com.example.Nucleus.repository.WorkspaceRepository;
 import com.example.Nucleus.service.WorkspaceService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @Cacheable(cacheNames = "userWorkspaces", key = "#id")
     public List<WorkspaceResponseDto> getWorkspaceByUser(Long id) {
         Authentication authentication  = SecurityContextHolder.getContext().getAuthentication();
         if(authentication==null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")){
@@ -52,6 +55,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @Cacheable(cacheNames = "workspaceProjects", key = "#id")
     public SingleWorkspaceWithProjectsResponseDto getWorkspaceById(Long id) {
         Workspace workspace = workspaceRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Workspace not found."));
@@ -65,6 +69,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "userWorkspaces", key = "#result.userId")
     public WorkspaceResponseDto updateWorkspace(Long id, WorkspaceRequestDto workspaceRequestDto) {
         Workspace workspace = workspaceRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Workspace not found."));
@@ -75,6 +80,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "userWorkspaces", key = "#id")
     public void DeleteWorkspace(Long id) {
         Workspace workspace = workspaceRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Workspace not found."));

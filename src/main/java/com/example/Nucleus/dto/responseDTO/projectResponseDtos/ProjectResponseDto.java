@@ -8,7 +8,7 @@ public class ProjectResponseDto {
     private String description;
     private LocalDateTime createdAt;
     private String workspace;
-    private Long Workspace_id;
+    private Long WorkspaceId;
 
     public ProjectResponseDto() {
     }
@@ -19,7 +19,7 @@ public class ProjectResponseDto {
         this.description = description;
         this.createdAt = createdAt;
         this.workspace = workspace;
-        Workspace_id = workspace_id;
+        WorkspaceId = workspace_id;
     }
 
     public Long getId() {
@@ -62,11 +62,11 @@ public class ProjectResponseDto {
         this.workspace = workspace;
     }
 
-    public Long getWorkspace_id() {
-        return Workspace_id;
+    public Long getWorkspaceId() {
+        return WorkspaceId;
     }
 
-    public void setWorkspace_id(Long workspace_id) {
-        Workspace_id = workspace_id;
+    public void setWorkspaceId(Long workspaceId) {
+        WorkspaceId = workspaceId;
     }
 }

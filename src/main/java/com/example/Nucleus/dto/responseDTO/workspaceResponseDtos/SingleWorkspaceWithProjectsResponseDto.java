@@ -10,7 +10,7 @@ public class SingleWorkspaceWithProjectsResponseDto {
     private String name;
     private LocalDateTime created_at;
     private String userName;
-    private Long user_id;
+    private Long userId;
     private List<ProjectShortResponseDto> projects;
 
     public SingleWorkspaceWithProjectsResponseDto() {
@@ -21,7 +21,7 @@ public class SingleWorkspaceWithProjectsResponseDto {
         this.name = name;
         this.created_at = created_at;
         this.userName = userName;
-        this.user_id = user_id;
+        this.userId = user_id;
         this.projects = projects;
     }
 
@@ -57,12 +57,12 @@ public class SingleWorkspaceWithProjectsResponseDto {
         this.userName = userName;
     }
 
-    public Long getUser_id() {
-        return user_id;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser_id(Long user_id) {
-        this.user_id = user_id;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public List<ProjectShortResponseDto> getProjects() {

@@ -17,6 +17,7 @@ import com.example.Nucleus.service.ProjectService;
 import com.example.Nucleus.utils.RandomCodeGenerator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -115,6 +116,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "workspaceProjects", key = "#result.WorkspaceId")
     public ProjectResponseDto UpdateProject(Long id, ProjectRequestDto projectRequestDto) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Project not found."));
@@ -122,7 +124,10 @@ public class ProjectServiceImpl implements ProjectService {
         project.setName(projectRequestDto.getName());
         project.setDescription(projectRequestDto.getDescription());
         Project updatedProject = projectRepository.save(project);
-        return modelMapper.map(updatedProject, ProjectResponseDto.class);
+        ProjectResponseDto res = modelMapper.map(updatedProject, ProjectResponseDto.class);
+        res.setWorkspace(updatedProject.getWorkspace().getName());
+        res.setWorkspaceId(updatedProject.getWorkspace().getId());
+        return res;
     }
 
     @Override
