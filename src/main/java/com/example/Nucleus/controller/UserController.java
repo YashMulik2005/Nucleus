@@ -22,4 +22,6 @@ public class UserController {
         return SucessResponseHandler.SucessResponseBuilder(HttpStatus.OK, true,
                 "Profile data fetched successfully.", userServiceImpl.getUserById(id));
     }
+
+    
 }
