@@ -1,6 +1,8 @@
 package com.example.Nucleus.dto.responseDTO.projectResponseDtos;
 
-public class ProjectShortResponseDto {
+import java.io.Serializable;
+
+public class ProjectShortResponseDto implements Serializable {
     private Long id;
     private String name;
     private String description;

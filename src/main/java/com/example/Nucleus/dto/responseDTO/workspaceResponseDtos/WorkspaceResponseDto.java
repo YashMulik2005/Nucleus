@@ -1,9 +1,10 @@
 package com.example.Nucleus.dto.responseDTO.workspaceResponseDtos;
 
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class WorkspaceResponseDto {
+public class WorkspaceResponseDto implements Serializable {
     private Long id;
     private String name;
     private LocalDateTime created_at;

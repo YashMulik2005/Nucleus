@@ -2,10 +2,11 @@ package com.example.Nucleus.dto.responseDTO.workspaceResponseDtos;
 
 import com.example.Nucleus.dto.responseDTO.projectResponseDtos.ProjectShortResponseDto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class SingleWorkspaceWithProjectsResponseDto {
+public class SingleWorkspaceWithProjectsResponseDto implements Serializable {
     private Long id;
     private String name;
     private LocalDateTime created_at;
