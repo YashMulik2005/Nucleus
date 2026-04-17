@@ -1,6 +1,8 @@
 package com.example.Nucleus.dto.responseDTO.UserResponseDtos;
 
-public class UserResponseDto {
+import java.io.Serializable;
+
+public class UserResponseDto implements Serializable {
     private String fname;
     private String lname;
     private String email;

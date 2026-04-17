@@ -126,9 +126,7 @@ public class TaskServiceImpl implements TaskService {
         task.setStatus(updateTaskStatusRequestDto.getStatus());
         Task updatedTask = taskRepository.save(task);
 
-        Task savedTask = taskRepository.save(task);
-
-        eventPublisher.publishEvent(new TaskActivityEvent("Task status updated from "+ temp +" to " + savedTask.getStatus()+".", user, savedTask));
+        eventPublisher.publishEvent(new TaskActivityEvent("Task status updated from "+ temp +" to " + updatedTask.getStatus()+".", user, updatedTask));
 
         return modelMapper.map(updatedTask, TaskResponseWithoutUser.class);
     }
